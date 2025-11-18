@@ -1,0 +1,18 @@
+---
+- name: Déployer Docker sur VM Azure
+  hosts: web
+  become: true
+
+  tasks:
+    - name: Installer Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Lancer le conteneur Docker
+      docker_container:
+        name: myapp
+        image: myapp:latest
+        state: started
+        restart_policy: always
