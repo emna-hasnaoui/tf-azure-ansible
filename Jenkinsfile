@@ -7,38 +7,32 @@ pipeline {
     }
 
     stages {
-        stage('Load Azure Credentials') {
+
+        stage('Terraform Pipeline') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'AZURE_SP_CREDENTIAL',
-                                                  usernameVariable: 'ARM_CLIENT_ID',
-                                                  passwordVariable: 'ARM_CLIENT_SECRET')]) {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'AZURE_SP_CREDENTIAL',
+                        usernameVariable: 'ARM_CLIENT_ID',
+                        passwordVariable: 'ARM_CLIENT_SECRET'
+                    )
+                ]) {
+
                     echo "Credentials loaded"
+
+                    bat 'terraform init'
+
+                    bat """
+                    terraform plan ^
+                      -var client_id=%ARM_CLIENT_ID% ^
+                      -var client_secret=%ARM_CLIENT_SECRET% ^
+                      -var tenant_id=%ARM_TENANT_ID% ^
+                      -var subscription_id=%ARM_SUBSCRIPTION_ID% ^
+                      -out=tfplan
+                    """
+
+                    bat "terraform apply -auto-approve tfplan"
                 }
-            }
-        }
-
-        stage('Terraform Init') {
-            steps {
-                bat 'terraform init'
-            }
-        }
-
-        stage('Terraform Plan') {
-            steps {
-                bat """
-                terraform plan ^
-                  -var client_id=%ARM_CLIENT_ID% ^
-                  -var client_secret=%ARM_CLIENT_SECRET% ^
-                  -var tenant_id=%ARM_TENANT_ID% ^
-                  -var subscription_id=%ARM_SUBSCRIPTION_ID% ^
-                  -out=tfplan
-                """
-            }
-        }
-
-        stage('Terraform Apply') {
-            steps {
-                bat 'terraform apply -auto-approve tfplan'
             }
         }
     }
