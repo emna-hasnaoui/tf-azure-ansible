@@ -1,6 +1,12 @@
 provider "azurerm" {
   features {}
+
+  client_id       = var.client_id
+  client_secret   = var.client_secret
+  subscription_id = var.subscription_id
+  tenant_id       = var.tenant_id
 }
+
 
 resource "azurerm_resource_group" "rg" {
   name     = "rg-tp-devops"
@@ -32,8 +38,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
 
   admin_ssh_key {
   username   = "azureuser"
-  public_key = file("${path.module}/ssh/id_rsa.pub")
-}
+  public_key = file("C:/Users/utili/.ssh/id_rsa.pub")
+  }
 
 }
 

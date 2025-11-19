@@ -1,39 +1,28 @@
 pipeline {
-  agent any
-  environment {
-    ARM_CLIENT_ID     = credentials('AZURE_SP_CREDENTIAL')
-    ARM_CLIENT_SECRET = credentials('AZURE_SP_CREDENTIAL')
-    ARM_TENANT_ID     = '<TENANT_ID>'
-    ARM_SUBSCRIPTION_ID = '<SUBSCRIPTION_ID>'
-  }
+    agent any
 
-  stages {
-    stage('Terraform Init') {
-      steps { bat 'terraform init' }
+    environment {
+        ARM_CLIENT_ID       = credentials('AZURE_SP_CLIENT_ID')
+        ARM_CLIENT_SECRET   = credentials('AZURE_SP_CLIENT_SECRET')
+        ARM_SUBSCRIPTION_ID = 'f4042894-a707-4691-a7c5-9c34c95bbc87'
+        ARM_TENANT_ID       = 'dbd6664d-4eb9-46eb-99d8-5c43ba153c61'
     }
 
-    stage('Terraform Plan') {
-      steps { bat 'terraform plan -out=tfplan' }
+    stages {
+        stage('Terraform Init') {
+            steps {
+                bat 'terraform init'
+            }
+        }
+        stage('Terraform Plan') {
+            steps {
+                bat 'terraform plan -out=tfplan'
+            }
+        }
+        stage('Terraform Apply') {
+            steps {
+                bat 'terraform apply -auto-approve tfplan'
+            }
+        }
     }
-
-    stage('Terraform Apply') {
-      steps { bat 'terraform apply -auto-approve tfplan' }
-    }
-
-    stage('Generate Inventory') {
-      steps {
-        bat '''
-        for /f "delims=" %%i in ('az vm list-ip-addresses -g rg-tp-devops -n vm-tp --query "[0].virtualMachine.network.publicIpAddresses[0].ipAddress" -o tsv') do set PUBIP=%%i
-        copy inventory.ini.template inventory.ini
-        powershell -Command "(Get-Content inventory.ini) -replace '<IP_DE_LA_VM>', '%PUBIP%' | Set-Content inventory.ini"
-        '''
-      }
-    }
-
-    stage('Deploy Docker with Ansible') {
-      steps {
-        bat 'ansible-playbook -i inventory.ini playbook.yml'
-      }
-    }
-  }
 }
