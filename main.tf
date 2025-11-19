@@ -31,9 +31,10 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 
   admin_ssh_key {
-    username   = "azureuser"
-    public_key = file("C:\\Users\\utili\\.ssh\\id_rsa.pub") # ou chemin Linux si Cloud Shell
-  }
+  username   = "azureuser"
+  public_key = file("${path.module}/ssh/id_rsa.pub")
+}
+
 }
 
 # NIC et VNet
