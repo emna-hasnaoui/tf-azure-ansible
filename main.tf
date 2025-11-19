@@ -11,17 +11,15 @@ provider "azurerm" {
   features {}
 }
 
-# ---------------------------------------------------
-# RESOURCE GROUP
-# ---------------------------------------------------
 resource "azurerm_resource_group" "rg" {
   name     = "rg-tp-devops"
   location = "France Central"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
-# ---------------------------------------------------
-# VIRTUAL NETWORK
-# ---------------------------------------------------
 resource "azurerm_virtual_network" "vnet" {
   name                = "vnet-tp"
   resource_group_name = azurerm_resource_group.rg.name
@@ -29,37 +27,25 @@ resource "azurerm_virtual_network" "vnet" {
   address_space       = ["10.0.0.0/16"]
 }
 
-# ---------------------------------------------------
-# SUBNET
-# (Fix : le subnet attend que le VNET soit 100% créé)
-# ---------------------------------------------------
 resource "azurerm_subnet" "subnet" {
   name                 = "subnet-tp"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
-
-  depends_on = [
-    azurerm_virtual_network.vnet
-  ]
 }
 
-# ---------------------------------------------------
-# PUBLIC IP
-# (Fix : Standard → Static obligatoire OR Basic → Dynamic)
-# Ici : Standard + Static (recommandé)
-# ---------------------------------------------------
 resource "azurerm_public_ip" "pip" {
   name                = "pip-tp"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   allocation_method   = "Static"
   sku                 = "Standard"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
-# ---------------------------------------------------
-# NETWORK INTERFACE
-# ---------------------------------------------------
 resource "azurerm_network_interface" "nic" {
   name                = "nic-tp"
   location            = azurerm_resource_group.rg.location
@@ -73,9 +59,6 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
-# ---------------------------------------------------
-# LINUX VIRTUAL MACHINE
-# ---------------------------------------------------
 resource "azurerm_linux_virtual_machine" "vm" {
   name                = "vm-tp"
   location            = azurerm_resource_group.rg.location
@@ -87,8 +70,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
     azurerm_network_interface.nic.id
   ]
 
-  admin_password = "Azure12345!!"         # sécuriser plus tard
-  disable_password_authentication = false # pour tests
+  admin_password                   = "Azure12345!!"
+  disable_password_authentication  = false
 
   os_disk {
     caching              = "ReadWrite"
@@ -103,9 +86,6 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 }
 
-# ---------------------------------------------------
-# OUTPUTS
-# ---------------------------------------------------
 output "public_ip" {
   value = azurerm_public_ip.pip.ip_address
 }
