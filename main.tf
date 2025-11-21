@@ -6,7 +6,7 @@ terraform {
     }
   }
 
-  backend "local" {} # Change to "azurerm" if you later want remote backend
+  backend "local" {}
 }
 
 provider "azurerm" {
@@ -70,9 +70,10 @@ resource "azurerm_linux_virtual_machine" "vm" {
     azurerm_network_interface.nic.id,
   ]
 
+  # Option 1: Use SSH key with absolute path (Windows)
   admin_ssh_key {
     username   = "azureuser"
-    public_key = file("~/.ssh/id_rsa.pub")  # or replace with your key path
+    public_key = file("./.ssh/id_rsa.pub)
   }
 
   source_image_reference {
@@ -80,5 +81,11 @@ resource "azurerm_linux_virtual_machine" "vm" {
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+    disk_size_gb         = 30
   }
 }
