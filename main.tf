@@ -73,7 +73,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   # Option 1: Use SSH key with absolute path (Windows)
   admin_ssh_key {
     username   = "azureuser"
-    public_key = file("./.ssh/id_rsa.pub)
+    public_key = file("./.ssh/id_rsa.pub")
   }
 
   source_image_reference {
