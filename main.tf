@@ -70,11 +70,10 @@ resource "azurerm_linux_virtual_machine" "vm" {
     azurerm_network_interface.nic.id,
   ]
 
-  # Option 1: Use SSH key with absolute path (Windows)
   admin_ssh_key {
-    username   = "azureuser"
-    public_key = file("./.ssh/id_rsa.pub")
-  }
+  username   = "azureuser"
+  public_key = file("${path.module}/.ssh/id_rsa.pub")
+}
 
   source_image_reference {
     publisher = "Canonical"
